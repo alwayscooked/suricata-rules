@@ -1,0 +1,42 @@
+#DNS
+alert tcp 192.168.10.0/24 any -> 192.168.5.5 53 (msg:"[?] Packet with TCP FA flags and destination port 53 was detected!"; flow:established; flags:PA; sid:1000001; rev:1;)
+alert tcp $EXTERNAL_NET any <> 192.168.5.5 53 (msg:"[!] Warning: DNS zone transfer attempt was detected!"; flow:established; content:"|03 31 39 32 03 31 36 38 01 35 01 35 00 00 FC|"; app-layer-protocol:dns; sid:1000002; rev:1;)
+
+#FTP
+alert ftp 192.168.10.8 any -> $HOME_NET 21 (msg:"[!] Message from FTP proxy server was detected!"; sid:1000003; rev:1;)
+alert ftp 192.168.10.8 any -> $HOME_NET any (msg:"[!!] Warning! FTP bounce attack was detected!"; ftpbounce; sid:10000031; rev:1;)
+
+#TCP Anomaly: XMAS
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg:"[!] Packet with FPU flags detected! Possible XMAS scanning!"; flags:FPU; sid:1000004; rev:1;)
+
+#RTP
+#In separate file
+
+#POP3
+#Client
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! USER command"; content:"USER"; sid:1049157; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! PASS command"; flow:established; content:"PASS"; sid:1049158; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! QUIT command"; flow:established; content:"QUIT"; sid:1049159; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! RPOP command"; flow:established; content:"RPOP"; sid:1049160; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! LIST command"; flow:established; content:"LIST"; sid:1049161; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! RETR command"; flow:established; content:"RETR"; sid:1049162; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! STAT command"; flow:established; content:"STAT"; sid:1049163; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! DELE command"; flow:established; content:"DELE"; sid:1049164; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! NOOP command"; flow:established; content:"NOOP"; sid:1049165; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! LAST command"; flow:established; content:"LAST"; sid:1049166; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! RSET command"; flow:established; content:"RSET"; sid:1049167; rev:1;) 
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 request detected! TOP command"; flow:established; content:"TOP"; sid:1049168; rev:1;) 
+
+#Server
+alert tcp 192.168.5.5 110 -> $EXTERNAL_NET any (msg:"POP3 response detected! +OK message"; content:"+OK"; sid:1049169; rev:1;)
+alert tcp 192.168.5.5 110 -> $EXTERNAL_NET any (msg:"POP3 response detected! -ERR message"; content:"-ERR"; sid:1049170; rev:1;)
+
+#Connection attempt
+alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"Attempt connection to POP3 server! TCP syn flag!"; flags:S; flow:not_established; sid:1049171; rev:1;)
+#alert tcp $EXTERNAL_NET any -> 192.168.5.5 110 (msg:"POP3 Server: connection is established!"; flags:A; sid:1049172; rev:1;)
+
+#HTTPS
+alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"HTTPS packet. Type: Handshake"; flow:established; content:"|16|"; offset:0; depth:1; app-layer-protocol:tls; sid:1049173; rev:1;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"HTTPS packet. Type: Change cipher Spec"; flow:established; content:"|14|"; offset:0; depth:1; app-layer-protocol:tls; sid:1049174; rev:1;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"HTTPS packet. Type: Alert"; flow:established; content:"|15|"; offset:0; depth:1; app-layer-protocol:tls; sid:1049175; rev:1;)
+alert tcp $HOME_NET any -> $EXTERNAL_NET 443 (msg:"HTTPS packet. Type: Application Data"; flow:established; content:"|17|"; offset:0; depth:1; app-layer-protocol:tls; sid:1049176; rev:1;)
